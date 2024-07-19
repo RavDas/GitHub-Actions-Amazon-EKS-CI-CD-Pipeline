@@ -72,6 +72,90 @@ Add a newly created Role and click on Update IAM role.
 ![image](https://github.com/user-attachments/assets/790ec7c8-2719-4f3d-ba98-af38afcce53e)
 
 
+### Step 1.B: Add a self-hosted runner to EC2 instance
+
+Go to GitHub and click on Settings –> Actions –> Runners
+
+![image](https://github.com/user-attachments/assets/f04e5899-0b72-42a5-bf66-10de52a2f141)
+
+Click on "New self-hosted runner"
+
+![image](https://github.com/user-attachments/assets/987bf22a-8f10-4c0c-bcd8-17b1b5a63bce)
+
+
+Now select Linux and Architecture X64
+
+![2 59](https://github.com/user-attachments/assets/513eb78f-a054-42e6-a245-ab578c19a61a)
+
+
+Use the below commands to add a self-hosted runner to our EC2 instance
+
+![2 6](https://github.com/user-attachments/assets/c5c7fd86-d28b-4e99-a69b-54ded8967839)
+
+
+And paste the commands in the terminal of the EC2 instance.
+
+**NOTE: Use your runner command in the EC2 instance**
+
+
+
+```
+mkdir actions-runner && cd actions-runner
+```
+
+![image](https://github.com/user-attachments/assets/bc2f5b8a-9f0d-478a-84b0-c9abf5c0fccd)
+
+
+The command “mkdir actions-runner && cd actions-runner” is used to create a new directory called “actions-runner” in the current working directory and then immediately change the current working directory (use home as the current directory) to the newly created “actions-runner” directory. This allows you to organize your files and perform subsequent actions within the newly created directory without having to navigate to it separately.
+
+```
+curl -o actions-runner-linux-x64-2.317.0.tar.gz -L https://github.com/actions/runner/releases/download/v2.317.0/actions-runner-linux-x64-2.317.0.tar.gz
+```
+
+This command downloads a file called “actions-runner-linux-x64-2.310.2.tar.gz” from a specific web address on GitHub and saves it in your current directory.
+
+![image](https://github.com/user-attachments/assets/cd007ca1-d559-4844-96a9-569210025ba9)
+
+Let’s validate the hash installation
+
+```
+echo "fb28a1c3715e0a6c5051af0e6eeff9c255009e2eec6fb08bc2708277fbb49f93  actions-runner-linux-x64-2.310.2.tar.gz" | shasum -a 256 -c
+```
+
+![image](https://github.com/user-attachments/assets/facaf6de-5bb0-4b77-83f4-04f9f0529d03)
+
+Now extract the installer
+
+```
+tar xzf ./actions-runner-linux-x64-2.317.0.tar.gz
+```
+
+![image](https://github.com/user-attachments/assets/f683fbe6-70f8-48a3-8435-409b6b9aa5fd)
+
+Let’s configure the runner
+
+```
+./config.sh --url https://github.com/RavDas/GitHub-Actions-Amazon-EKS-CI-CD-Pipeline --token A2MXW4323ALGB72GGLH34NLFGI2T4
+```
+
+![image](https://github.com/user-attachments/assets/a67b4275-6bc8-4c28-bbd9-7a6efde64d55)
+
+If you provide multiple labels use commas for each label
+
+Let’s start runner,
+
+```
+./run.sh
+```
+
+![image](https://github.com/user-attachments/assets/301f9948-653a-4967-b0ef-7e317f9b0d47)
+
+Let’s close Runner for now.
+
+```
+ctrl + c  #to close
+```
+
 
 ### Step 2.A: Install Docker and Run SonarQube Container
 
@@ -116,175 +200,6 @@ password admin
 Update your SonarQube password & This is the SonarQube dashboard
 
 ![image](https://github.com/user-attachments/assets/6eccb8cc-0f59-4372-8165-325e50c073cf)
-
-
-### 2.B: Integrating SonarQube with GitHub Actions
-
-Integrating SonarQube with GitHub Actions allows you to automatically analyze your code for quality and security as part of your continuous integration pipeline.
-
-We already have SonarQube up and running.
-
-On SonarQube Dashboard click on Manually
-
-![image](https://github.com/user-attachments/assets/29ddc1ba-6264-413a-9566-8119c586e963)
-
-Next, provide a name for your project and provide a Branch name and click on setup
-
-![image](https://github.com/user-attachments/assets/dbcb4731-3640-4e66-8fb4-337f2783f132)
-
-
-On the next page click on "With GitHub Actions"
-
-This will Generate an overview of the Project and provide some instructions to integrate
-
-![image](https://github.com/user-attachments/assets/acc8c024-9682-433a-9ce9-63c2982369d3)
-
-
-Let’s Open your GitHub and select your Repository -In my case it is "GitHub-Actions-Amazon-EKS-CI-CD-Pipeline".
-
-Click on Settings
-
-![1 2](https://github.com/user-attachments/assets/d1386235-d33b-4f82-bf9f-cb4240b6d60a)
-
-
-Search for "Secrets and variables" and click on and again click on "Actions"
-
-![image](https://github.com/user-attachments/assets/7e2f9e70-7571-4577-b6be-9078f43b52de)
-
-It will open a page like this click on "New repository secret"
-
-![image](https://github.com/user-attachments/assets/f05c1583-8787-4063-b198-46790f10bf6a)
-
-Now go back to Your SonarQube Dashboard
-
-Copy SONAR_TOKEN and click on "Generate a Token"
-
-![image](https://github.com/user-attachments/assets/2f2baefd-56c5-488c-b229-fa7b286aabf4)
-
-Click on Generate
-
-![image](https://github.com/user-attachments/assets/b7047e01-6684-4acb-89ef-6552ed2db560)
-
-Let’s copy the Token and add it to GitHub secrets
-
-![image](https://github.com/user-attachments/assets/5e701687-8374-4568-82aa-9c95c6cf579c)
-
-
-Now go back to GitHub and Paste the copied name for the secret and token
-
-Name: SONAR_TOKEN
-
-Secret: Paste Your Token and click on "Add secret"
-
-![image](https://github.com/user-attachments/assets/0ba8404a-713e-46a1-b4bc-c16d0e48c77c)
-
-
-Now again go back to the SonarQube Dashboard
-
-Copy the Name and Value
-
-![image](https://github.com/user-attachments/assets/a790f50b-6803-4449-b114-0fb3f46fd0ba)
-
-
-Go to GitHub now and paste-like this and click on add secret by clicking "New repository secret" again.(Here we do that to allow SonarQube to allow our Github repository code to scan and analyze)
-
-![image](https://github.com/user-attachments/assets/2c5415d8-40e3-476c-ac2f-66f596eb8de1)
-
-
-Our SonarQube secrets are added and you can see
-
-![image](https://github.com/user-attachments/assets/98ae9015-d7d4-44d2-b781-94698a676083)
-
-Go to SonarQube Dashboard and click on continue
-
-![image](https://github.com/user-attachments/assets/178731c6-08ab-4dde-af92-5b9f4640a35d)
-
-
-Now create your Workflow for your Project. In my case, the project is built using React Js. That’s why I am selecting "Other".
-
-![image](https://github.com/user-attachments/assets/717b69fd-8b30-4c6c-a3bc-abf1f6bcf278)
-
-
-Now it Generates and workflow for my Project
-
-![image](https://github.com/user-attachments/assets/f8a0bf76-b72b-4397-8a71-d369ecd7cb72)
-
-
-Go back to GitHub and add the add file "sonar-project.properties" and copy the following code you get under the file name. You can create a file inside Github itself using Add file -> Create new file and commit changes to the repository of create a file in your local machine repository and push it your remote Github repository.
-
-![image](https://github.com/user-attachments/assets/12c9c6d1-48af-40c2-97f6-5fa1a434ab35)
-
-Add the file with content to the Github repository.
-
-![1 3](https://github.com/user-attachments/assets/bd638a14-809b-4b94-869e-04b49a79e2de)
-
-
-Now add our workflow of our project 
-
-Again go to your GitHub repository and add the add file "sonar.yml"( you can use any name instead of build.yml) inside ".github/workflows/". You can create a file inside Github itself using Add file -> Create new file and commit changes to the repository of create a file in your local machine repository and push it your remote Github repository.
-
-![image](https://github.com/user-attachments/assets/6062bcd4-c5ef-4d76-bfd4-74dbb81b753d)
-
-Copy content and add it to the file
-
-```
-name: Build,Analyze,scan
-
-on:
-  push:
-    branches:
-      - main
-
-
-jobs:
-  build-analyze-scan:
-    name: Build
-    runs-on: [self-hosted]
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
-
-      - name: Build and analyze with SonarQube
-        uses: sonarsource/sonarqube-scan-action@master
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-```
-
-![1 4](https://github.com/user-attachments/assets/897960c8-7a88-4658-8edb-5bd7d65689c5)
-
-Now workflow is created.
-
-Go to your Github repository and click on Actions now
-
-![1 5](https://github.com/user-attachments/assets/bf387db6-5cdc-40cc-938a-04cc1dc17a4c)
-
-Now it’s automatically started the workflow
-
-![image](https://github.com/user-attachments/assets/e21df26a-7a02-41a2-9414-d2915ff0fcb0)
-
-![1 6](https://github.com/user-attachments/assets/b1f3fc42-f04f-4404-b0fc-2923232b5ae7)
-
-Let’s click on Build and see what are the steps involved
-
-![image](https://github.com/user-attachments/assets/e65ec23d-52d5-45da-a829-189a72e5c0fe)
-
-Click on Run sonarsource and you can do this after the build completion
-
-![image](https://github.com/user-attachments/assets/1326d3a9-2b32-40aa-951e-78af25286fc4)
-
-
-Build complete.
-
-![image](https://github.com/user-attachments/assets/731736dd-5bba-45f6-bbd6-6aa31904505b)
-
-Go to the SonarQube dashboard and click on projects and you can see the analysis
-
-![image](https://github.com/user-attachments/assets/8eb502eb-b138-4c76-a66b-852939ba6fc0)
-
-If you want to see the full report, click on issues.
 
 
 ### Step 2.C: INSTALLATION OF OTHER TOOLS
@@ -379,7 +294,7 @@ java --version
 ![image](https://github.com/user-attachments/assets/269e936f-03fd-4b49-a1bb-2c197fd95c00)
 
 
-### Step 2.C.1 EKS provision using Terraform
+### Step 2.B.1 EKS provision using Terraform
 
 Clone the repo onto your EC2 instance and changes the directory to EKS terraform files.
 
@@ -439,6 +354,268 @@ terraform apply
 
 ![image](https://github.com/user-attachments/assets/e3e8f0b3-0c2c-48f1-b62c-658bc319b81a)
 
-It will take approximately 10 minutes to create the cluster
+It will take approximately 10 minutes to create the cluster.
 
+![image](https://github.com/user-attachments/assets/236e034b-d2db-4597-b967-992df0b1909d)
+
+![2 2](https://github.com/user-attachments/assets/2b4e36a2-3f55-4b54-b0da-09c439c6c75a)
+
+
+Under Clusters -> Node group;
+
+we can see a Node group being created with one EC2 instance running in that node group.
+
+![2 3](https://github.com/user-attachments/assets/2030ea5d-e67c-4924-ab8f-5be9afcaf775)
+
+![image](https://github.com/user-attachments/assets/bc1fd67c-8656-4b9d-81f9-3690c9d887d5)
+
+
+### 2.C: Integrating SonarQube with GitHub Actions
+
+Integrating SonarQube with GitHub Actions allows you to automatically analyze your code for quality and security as part of your continuous integration pipeline.
+
+We already have SonarQube up and running.
+
+On SonarQube Dashboard click on Manually
+
+![image](https://github.com/user-attachments/assets/29ddc1ba-6264-413a-9566-8119c586e963)
+
+Next, provide a name for your project and provide a Branch name and click on setup
+
+![image](https://github.com/user-attachments/assets/dbcb4731-3640-4e66-8fb4-337f2783f132)
+
+
+On the next page click on "With GitHub Actions"
+
+This will Generate an overview of the Project and provide some instructions to integrate
+
+![image](https://github.com/user-attachments/assets/acc8c024-9682-433a-9ce9-63c2982369d3)
+
+
+Let’s Open your GitHub and select your Repository - In my case it is "GitHub-Actions-Amazon-EKS-CI-CD-Pipeline".
+
+Click on Settings
+
+![1 2](https://github.com/user-attachments/assets/d1386235-d33b-4f82-bf9f-cb4240b6d60a)
+
+
+Search for "Secrets and variables" and click on and again click on "Actions"
+
+![image](https://github.com/user-attachments/assets/7e2f9e70-7571-4577-b6be-9078f43b52de)
+
+It will open a page like this click on "New repository secret"
+
+![image](https://github.com/user-attachments/assets/f05c1583-8787-4063-b198-46790f10bf6a)
+
+Now go back to Your SonarQube Dashboard
+
+Copy SONAR_TOKEN and click on "Generate a Token"
+
+![image](https://github.com/user-attachments/assets/2f2baefd-56c5-488c-b229-fa7b286aabf4)
+
+Click on Generate
+
+![image](https://github.com/user-attachments/assets/b7047e01-6684-4acb-89ef-6552ed2db560)
+
+Let’s copy the Token and add it to GitHub secrets
+
+![image](https://github.com/user-attachments/assets/5e701687-8374-4568-82aa-9c95c6cf579c)
+
+
+Now go back to GitHub and Paste the copied name for the secret and token
+
+Name: SONAR_TOKEN
+
+Secret: Paste Your Token and click on "Add secret"
+
+![image](https://github.com/user-attachments/assets/0ba8404a-713e-46a1-b4bc-c16d0e48c77c)
+
+
+Now again go back to the SonarQube Dashboard
+
+Copy the Name and Value
+
+![image](https://github.com/user-attachments/assets/a790f50b-6803-4449-b114-0fb3f46fd0ba)
+
+
+Go to GitHub now and paste-like this and click on add secret by clicking "New repository secret" again.(Here we do that to allow SonarQube to allow our Github repository code to scan and analyze)
+
+![image](https://github.com/user-attachments/assets/2c5415d8-40e3-476c-ac2f-66f596eb8de1)
+
+
+Our SonarQube secrets are added and you can see
+
+![image](https://github.com/user-attachments/assets/98ae9015-d7d4-44d2-b781-94698a676083)
+
+Go to SonarQube Dashboard and click on continue
+
+![image](https://github.com/user-attachments/assets/178731c6-08ab-4dde-af92-5b9f4640a35d)
+
+
+Now create your workflow for your project. In my case, the project is built using React Js. That’s why I am selecting "Other".
+
+![image](https://github.com/user-attachments/assets/717b69fd-8b30-4c6c-a3bc-abf1f6bcf278)
+
+
+Now it generates a properties file for SonarQube and a workflow for my project.
+
+![image](https://github.com/user-attachments/assets/f8a0bf76-b72b-4397-8a71-d369ecd7cb72)
+
+
+Go back to GitHub and add the add file "sonar-project.properties" and copy the following code you get under the file name. You can create a file inside Github itself using Add file -> Create new file and commit changes to the repository of create a file in your local machine repository and push it your remote Github repository.
+
+![image](https://github.com/user-attachments/assets/12c9c6d1-48af-40c2-97f6-5fa1a434ab35)
+
+Add the file with content to the Github repository.
+
+![1 3](https://github.com/user-attachments/assets/bd638a14-809b-4b94-869e-04b49a79e2de)
+
+
+Now add the workflow of our project.
+
+Again go to your GitHub repository and add the add file "runner.yml"( you can use any name instead of build.yml) inside ".github/workflows/". You can create a file inside Github itself using Add file -> Create new file and commit changes to the repository of create a file in your local machine repository and push it your remote Github repository.
+
+![image](https://github.com/user-attachments/assets/6062bcd4-c5ef-4d76-bfd4-74dbb81b753d)
+
+Copy content and add it to the file.
+
+```
+name: Build,Analyze,scan
+
+on:
+  push:
+    branches:
+      - main
+
+
+jobs:
+  build-analyze-scan:
+    name: Build
+    runs-on: [self-hosted]  # we change it to 'self-hosted' instead of 'ubuntu-latest'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+
+      - name: Build and analyze with SonarQube
+        uses: sonarsource/sonarqube-scan-action@master
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+```
+
+![1 4](https://github.com/user-attachments/assets/dc7e0394-fec5-4e0b-b70f-6f531f788587)
+
+**NOTE: When you compare the workflow provided by SonarQube, we change runs-on property from 'self-hosted' to 'ubuntu-latest'. The reason is; 
+
+GitHub Actions runners can be categorized into two main types: GitHub-hosted runners and self-hosted runners. The YAML configuration for workflows in your repository will generally look similar regardless of the runner type, but there are key differences in how you specify the runners.
+
+1. GitHub-Hosted Runners
+These runners are managed by GitHub. They are ephemeral and come pre-installed with a variety of tools and software. To use a GitHub-hosted runner, you simply specify the type of operating system you need in your workflow file.
+
+- runs-on: ubuntu-latest; tells GitHub to use the latest version of the Ubuntu runner.
+  
+2. Self-Hosted Runners
+
+Self-hosted runners are machines that you manage yourself. You can use any operating system and configure the software environment as needed. This allows for greater customization and control, and it can also help in running workflows that require specific hardware or software setups.
+
+To use a self-hosted runner, you need to specify the self-hosted label in your workflow file. Additionally, you might add custom labels to differentiate between different types of self-hosted runners.
+
+- runs-on: self-hosted tells GitHub to use a self-hosted runner.
+  
+If you have multiple self-hosted runners with different labels, you can specify those labels to ensure the job runs on the appropriate machine.**
+
+#### Key Differences
+
+Here's a table summarizing the key differences between GitHub-hosted runners and self-hosted runners:
+
+| **Aspect**         | **GitHub-Hosted Runners**                       | **Self-Hosted Runners**                        |
+|--------------------|-------------------------------------------------|------------------------------------------------|
+| **Runner Specification** | `runs-on: ubuntu-latest`, `runs-on: windows-latest`, etc. | `runs-on: self-hosted` or `runs-on: [self-hosted, custom-label]` |
+| **Environment Control** | Pre-configured environments managed by GitHub | Full control over the environment, allowing for customization and use of specific hardware |
+| **Maintenance**    | Maintenance, updates, and scaling handled by GitHub | Requires you to maintain the runner, including updates, scaling, and ensuring availability |
+| **Cost**           | Limited free usage with GitHub's pricing plans; additional usage may incur costs | No additional cost from GitHub, but you bear the cost of maintaining your own infrastructure |
+
+
+
+
+
+Now the workflow is created.
+
+Start again GitHub actions runner from the EC2 instance.
+
+```
+cd actions-runner
+./run.sh
+```
+
+Go to your Github repository and click on "Actions" now.
+
+![1 5](https://github.com/user-attachments/assets/bf387db6-5cdc-40cc-938a-04cc1dc17a4c)
+
+Now it’s automatically started the workflow.
+
+![image](https://github.com/user-attachments/assets/e21df26a-7a02-41a2-9414-d2915ff0fcb0)
+
+![1 6](https://github.com/user-attachments/assets/b1f3fc42-f04f-4404-b0fc-2923232b5ae7)
+
+Let’s click on Build and see what are the steps involved.
+
+![image](https://github.com/user-attachments/assets/e65ec23d-52d5-45da-a829-189a72e5c0fe)
+
+Click on Run sonarsource and you can do this after the build completion
+
+![image](https://github.com/user-attachments/assets/1326d3a9-2b32-40aa-951e-78af25286fc4)
+
+
+After Build is completed, you will following outputs in,
+
+In EC2 ssh-ed terminal,
+
+![2 65](https://github.com/user-attachments/assets/5ffe3c52-bd37-46db-acbc-4df5fd262cd3)
+
+In Github Actions,
+
+![image](https://github.com/user-attachments/assets/731736dd-5bba-45f6-bbd6-6aa31904505b)
+
+
+Go to the SonarQube dashboard and click on projects and you can see the analysis
+
+![image](https://github.com/user-attachments/assets/8eb502eb-b138-4c76-a66b-852939ba6fc0)
+
+If you want to see the full report, click on issues.
+
+
+Now add the remaining steps to the workflow(runner.yml) file.
+
+Next, install npm dependencies - Install Node.js dependencies. You can replace this with your specific npm install command.
+
+```
+- name: NPM Install
+        run: npm install # Add your specific npm install command
+```
+
+Next intsall Trivy - Scans the current directory files (denoted by .) and redirects the output to a file named trivyfs.txt.
+
+
+```
+- name: Install Trivy
+        run: |
+          # Scanning files
+          trivy fs . > trivyfs.txt
+```
+
+If you add this to the workflow(runner.yml), you will get below output,
+
+In EC2 ssh-ed terminal;
+
+![2 65](https://github.com/user-attachments/assets/88c3c268-e5b5-4d1e-90b2-a6beb3791faf)
+
+
+In Github Actions;
+
+![2 7](https://github.com/user-attachments/assets/a6437e3c-3da7-4967-a9eb-af4b74c3f42f)
+
+![2 8](https://github.com/user-attachments/assets/7e80c51b-70c6-4f61-b7f6-0b321dfa9e70)
 
