@@ -509,6 +509,9 @@ jobs:
 
 **NOTE: When you compare the workflow provided by SonarQube, we change runs-on property from 'self-hosted' to 'ubuntu-latest'. The reason is; 
 
+###########################################################################################################
+
+
 GitHub Actions runners can be categorized into two main types: GitHub-hosted runners and self-hosted runners. The YAML configuration for workflows in your repository will generally look similar regardless of the runner type, but there are key differences in how you specify the runners.
 
 1. GitHub-Hosted Runners
@@ -538,7 +541,7 @@ Here's a table summarizing the key differences between GitHub-hosted runners and
 | **Cost**           | Limited free usage with GitHub's pricing plans; additional usage may incur costs | No additional cost from GitHub, but you bear the cost of maintaining your own infrastructure |
 
 
-
+###########################################################################################################
 
 
 Now the workflow is created.
@@ -571,11 +574,11 @@ Click on Run sonarsource and you can do this after the build completion
 
 After Build is completed, you will following outputs in,
 
-In EC2 ssh-ed terminal,
+a) In EC2 ssh-ed terminal,
 
 ![2 65](https://github.com/user-attachments/assets/5ffe3c52-bd37-46db-acbc-4df5fd262cd3)
 
-In Github Actions,
+b) In Github Actions,
 
 ![image](https://github.com/user-attachments/assets/731736dd-5bba-45f6-bbd6-6aa31904505b)
 
@@ -608,14 +611,315 @@ Next intsall Trivy - Scans the current directory files (denoted by .) and redire
 
 If you add this to the workflow(runner.yml), you will get below output,
 
-In EC2 ssh-ed terminal;
+a) In EC2 ssh-ed terminal;
 
 ![2 65](https://github.com/user-attachments/assets/88c3c268-e5b5-4d1e-90b2-a6beb3791faf)
 
 
-In Github Actions;
+b) In Github Actions;
 
 ![2 7](https://github.com/user-attachments/assets/a6437e3c-3da7-4967-a9eb-af4b74c3f42f)
 
 ![2 8](https://github.com/user-attachments/assets/7e80c51b-70c6-4f61-b7f6-0b321dfa9e70)
+
+To view the ```trivyfs.txt``` file,
+
+```
+# cd actions-runner/_work/<github_repository_name>/<github_repository_name>/
+cd actions-runner/_work/GitHub-Actions-Amazon-EKS-CI-CD-Pipeline/GitHub-Actions-Amazon-EKS-CI-CD-Pipeline/
+cat trivyfs.txt
+```
+
+![2 9](https://github.com/user-attachments/assets/1e55d89e-41a4-48ee-9fc1-406b25bdacf4)
+
+
+### Step 3: Build, push and deploy the Docker image
+
+Create a Personal Access token for your Docker hub account.
+
+Go to Docker hub and click on your profile –> Account settings –> Security –> New access token
+
+![image](https://github.com/user-attachments/assets/c0fc53cc-c3d5-4fff-9d07-f356330c34d1)
+
+Provide a name and click on"Generate" to receive a token.
+
+![image](https://github.com/user-attachments/assets/39bc16c7-3a77-46fe-94e8-01f155c18bcb)
+
+Copy the token save it in a safe place, and close.
+
+
+Now Go to GitHub again and click on "Settings".
+
+![1 2](https://github.com/user-attachments/assets/d1386235-d33b-4f82-bf9f-cb4240b6d60a)
+
+Search for "Secrets and variables" and click on and again click on "Actions".
+
+![image](https://github.com/user-attachments/assets/ab89c5c6-fb73-4808-a46d-67987e2fc74f)
+
+Click on "New Repository secret".
+
+![image](https://github.com/user-attachments/assets/35fa5ab0-419b-42dd-bccd-942a2430abbd)
+
+Add your Dockerhub username with the secret name as;
+
+```
+Name - DOCKERHUB_USERNAME
+Secret - <ravdas>   #use your docker hub username
+```
+
+![image](https://github.com/user-attachments/assets/9b573f88-736c-4dc8-917d-192f8b5ff090)
+
+Click on "Add secret".
+
+Let’s add our token also. Again, click on the new repository secret again.
+
+```
+Name - DOCKERHUB_TOKEN
+Secret - <generated_token_from_dockerhub>
+```
+
+![image](https://github.com/user-attachments/assets/c0f763bf-0793-4cc3-95ad-038ff19c0216)
+
+Paste the token that you generated and click on Add secret.
+
+
+Now, return back to the workflow (```runner.yml```) in Github and add the following step that builds a Docker image with specific build arguments and tags. It also logs into Docker hub using the provided credentials stored in secrets and pushes the Docker image to the Docker hub.
+
+```
+- name: Docker build and push
+        run: |
+          # Run commands to build and push Docker images
+          docker build -t ravdas/tic-tac-toe:latest .  # tag using <dockerhub_username/any_name:latest>
+          docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
+          docker push ravdas/tic-tac-toe:latest
+        env:
+          DOCKER_CLI_ACI: 1
+```
+
+If you run this job now you will get below output in Github Actions,
+
+![image](https://github.com/user-attachments/assets/f855fceb-ce3d-4bcd-adfb-5059746d423f)
+
+Now go to Docker hub abd check whether the Docker image is pushed to Docker hub.
+
+![3 3](https://github.com/user-attachments/assets/19aba6c7-63b0-4289-800e-7786c5cf9dcd)
+
+
+To Deploy the Docker image, add the following code to the workflow (```runner.yml```) file.
+
+```
+deploy:
+    needs: build-analyze-scan
+    runs-on: [self-hosted] # Use your self-hosted runner label here
+```
+
+Above section defines another job named “deploy.” It specifies that this job depends on the successful completion of the “build-analyze-scan” job. It also runs on a self-hosted runner. You should replace self-hosted with the label of your self-hosted runner.
+
+Then pull the Docker image from Docker Hub, specified by the tag of the image(ravdas/tic-tac-toe:latest), which was built and pushed in the previous “Docker build and push” job.
+
+```
+steps:
+      - name: Pull the Docker image
+        run: docker pull ravdas/tic-tac-toe:latest
+```
+
+Below step runs Trivy to scan the Docker image tagged as sevenajay/tic-tac-toe:latest. You should add the Trivy scan command here.
+
+```
+    - name: Trivy image scan
+            run: trivy image ravdas/tic-tac-toe:latest # Add Trivy scan command here
+```
+
+After modifying the workflow, the output in Github Action will be,
+
+![image](https://github.com/user-attachments/assets/468059f6-26f9-4192-9af0-6fc5f1c12634)
+
+
+Image scan report of the Docker image can be accessed by viewing the ```trivyimage.txt``` file,
+
+```
+# cd actions-runner/_work/<github_repository_name>/<github_repository_name>/
+cd actions-runner/_work/GitHub-Actions-Amazon-EKS-CI-CD-Pipeline/GitHub-Actions-Amazon-EKS-CI-CD-Pipeline/
+cat trivyimage.txt
+```
+
+![image](https://github.com/user-attachments/assets/719013d0-1611-4ff7-afbb-9b0184f00389)
+
+Next step runs a Docker container named “game” in detached mode (-d). It maps port 3000 on the host to port 3000 in the container. It uses the Docker image tagged as ravdas/tic-tac-toe:latest. (Make sure to open the port 3000 of the EC2 instance via security group of it to allow inbound traffic)
+
+
+```
+    - name: Run the container
+            run: docker run -d --name ticgame -p 3000:3000 ravdas/tic-tac-toe:latest
+```
+
+When we modify the workflow with deploy job, the output in Github Action will be,
+
+![image](https://github.com/user-attachments/assets/f8ad2710-2ef4-4ddd-8b92-d1f129aad0a1)
+
+
+After build stage gets successfull, then only it moves to the deploy stage. if not both stages will fail.
+
+![image](https://github.com/user-attachments/assets/7c668d12-15ea-46a6-87fa-3586ce028850)
+
+![3 0](https://github.com/user-attachments/assets/b7709cf4-49cc-4887-9091-a5692eb24de1)
+
+
+Now the application has been dployed to the container. We can access the application using,
+
+```
+<ec2-ip:3000>
+```
+
+![image](https://github.com/user-attachments/assets/b7a5fa4d-f99a-45d2-a2e1-8f75fefdb38b)
+
+
+
+
+### Step 5: SLACK
+
+
+Go to your Slack channel, if you don’t have [create one](https://slack.com/get-started#/createnew).
+
+Go to Slack channel and create a channel for notifications
+
+Click on your name
+
+Select "Settings and Administration"
+
+Click on "Manage apps"
+
+![image](https://github.com/user-attachments/assets/270eaffb-78c2-4328-bd9a-0314154ad452)
+
+
+It will open a new tab, select "Build".
+
+![image](https://github.com/user-attachments/assets/0d504eb7-17a4-4a8f-89c7-ec74324c10e8)
+
+Click on create an app
+
+![image](https://github.com/user-attachments/assets/6bb0009b-ade2-493b-810b-9b30bb8d53c2)
+
+Select from scratch
+
+![image](https://github.com/user-attachments/assets/34ed5ed3-fb6a-483a-a086-0b8abf81b9b9)
+
+Provide a name for the app and select workspace and create
+
+![image](https://github.com/user-attachments/assets/7d05e2f2-56ec-41e3-9bce-f93cba5e6d7e)
+
+Select "Incoming Webhooks"
+
+![image](https://github.com/user-attachments/assets/b59ac197-7829-4c71-8687-eabbd449a3c5)
+
+Set "Incoming Webhooks" to On
+
+![image](https://github.com/user-attachments/assets/e530df38-c8aa-4be8-b6ce-a021750ecc41)
+
+Click on "Add New Webhook to Workspace".
+
+![image](https://github.com/user-attachments/assets/74799aba-de19-498a-8464-7ec0dceeae1f)
+
+Select Your channel that created for notifications and allow
+
+![image](https://github.com/user-attachments/assets/957d573a-2241-4ca7-911f-2ad15fd7aaac)
+
+
+It will generate a webhook URL. Copy it
+
+Now come back to GitHub and click on "Settings"
+
+Go to Secrets –> Actions –> New repository secret and add
+
+```
+Name - SLACK_WEBHOOK_URL
+Secret - <copied_webhook_url>
+```
+
+![image](https://github.com/user-attachments/assets/f6f8a26e-fbe6-411e-92e3-abca15a662cc)
+
+Now add the below code to the workflow(```runner.yml```) and commit to start the workflow.
+
+```
+      - name: Send a Slack Notification
+        if: always()
+        uses: act10ns/slack@v1
+        with:
+          status: ${{ job.status }}
+          steps: ${{ toJson(steps) }}
+          channel: '#git'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+```
+
+Above step sends a Slack notification. It uses the act10ns/slack action and is configured to run “always,” which means it runs regardless of the job status. It sends the notification to the specified Slack channel using the webhook URL stored in secrets.
+
+
+
+====================================================================================================
+
+
+
+#### Complete Workflow(runner.yml)
+
+```
+name: Build,Analyze,scan
+on:
+  push:
+    branches:
+      - main
+jobs:
+  build-analyze-scan:
+    name: Build
+    runs-on: [self-hosted]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+      - name: Build and analyze with SonarQube
+        uses: sonarsource/sonarqube-scan-action@master
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+      - name: npm install dependency
+        run: npm install
+      - name: Trivy file scan
+        run: trivy fs . > trivyfs.txt
+      - name: Docker Build and push
+        run: |
+          docker build -t tic-tac-toe .
+          docker tag tic-tac-toe sevenajay/tic-tac-toe:latest
+          docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
+          docker push sevenajay/tic-tac-toe:latest
+        env:
+          DOCKER_CLI_ACI: 1
+      - name: Image scan
+        run: trivy image sevenajay/tic-tac-toe:latest > trivyimage.txt
+  deploy:
+   needs: build-analyze-scan
+   runs-on: [self-hosted]
+   steps:
+      - name: docker pull image
+        run: docker pull sevenajay/tic-tac-toe:latest
+      - name: Image scan
+        run: trivy image sevenajay/tic-tac-toe:latest > trivyimagedeploy.txt
+      - name: Deploy to container
+        run: docker run -d --name game -p 3000:3000 sevenajay/tic-tac-toe:latest
+      - name: Update kubeconfig
+        run: aws eks --region ap-south-1 update-kubeconfig --name EKS_CLOUD
+      - name: Deploy to kubernetes
+        run: kubectl apply -f deployment-service.yml
+      - name: Send a Slack Notification
+        if: always()
+        uses: act10ns/slack@v1
+        with:
+          status: ${{ job.status }}
+          steps: ${{ toJson(steps) }}
+          channel: '#githubactions-eks'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+```
+
+Run this workflow now
 
