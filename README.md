@@ -140,7 +140,12 @@ Let’s configure the runner
 
 ![image](https://github.com/user-attachments/assets/a67b4275-6bc8-4c28-bbd9-7a6efde64d55)
 
-If you provide multiple labels use commas for each label
+If you provide multiple label names for the runner, use commas for each label.
+
+Created runner in Github available in Settings -> Actions -> Runners
+
+![runner](https://github.com/user-attachments/assets/f226e9ee-62ae-4227-9acb-b96de5e8308b)
+
 
 Let’s start runner,
 
