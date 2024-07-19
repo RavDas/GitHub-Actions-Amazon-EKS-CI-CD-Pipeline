@@ -779,6 +779,38 @@ Now the application has been dployed to the container. We can access the applica
 ![image](https://github.com/user-attachments/assets/b7a5fa4d-f99a-45d2-a2e1-8f75fefdb38b)
 
 
+### STEP 4: Deploy to EKS
+
+
+To provide;
+
+* Necessary configuration to connect to and interact with your Amazon EKS cluster.
+
+* Authentication and Authorization: The kubeconfig file contains the necessary authentication credentials and endpoint information required to authenticate your requests and authorize your access to the cluster.
+
+* Seamless Cluster Management: Updating the kubeconfig allows you to use kubectl and other Kubernetes tools seamlessly with your EKS cluster, enabling you to manage resources, deploy applications, and monitor cluster status effectively.
+
+Add the below step to the workflow.
+
+```
+      - name: Update kubeconfig
+        run: aws eks --region <cluster-region> update-kubeconfig --name <cluster-name>
+```
+
+Now add a step to deploys Kubernetes resources defined in the deployment-service.yml file to the Amazon EKS cluster using kubectl apply.
+
+```
+      - name: Deploy to EKS
+        run: kubectl apply -f deployment-service.yml
+```
+
+The output in Github Actions after adding two recent steps to the workflow ,
+
+![deploy 22](https://github.com/user-attachments/assets/f783707f-f8e4-4c54-869b-0010c2ce2e97)
+
+Output from the EC2 terminal about deployemnt, services, replica sets and pods in Kubernets cluster,
+
+![get all](https://github.com/user-attachments/assets/9dbdd804-a043-47b8-ad0c-9f810daf2b13)
 
 
 ### Step 5: SLACK
