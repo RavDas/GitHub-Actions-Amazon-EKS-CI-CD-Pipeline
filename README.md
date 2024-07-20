@@ -207,7 +207,7 @@ Update your SonarQube password & This is the SonarQube dashboard
 ![image](https://github.com/user-attachments/assets/6eccb8cc-0f59-4372-8165-325e50c073cf)
 
 
-### Step 2.C: INSTALLATION OF OTHER TOOLS
+### Step 2.C: Installation of other tools 
 
 
 1. Install Java 17 - Install Temurin (formerly Adoptium) JDK 17.
