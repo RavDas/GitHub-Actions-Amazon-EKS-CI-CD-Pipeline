@@ -1,4 +1,4 @@
-# GitHub Actions with Amazon-EKS CICD Pipeline
+l# GitHub Actions with Amazon-EKS CICD Pipeline
 
 ![image](https://github.com/user-attachments/assets/6135c7ae-e07b-4f94-9228-db75cf82c7c4)
 
@@ -147,7 +147,7 @@ Created runner in Github available in Settings -> Actions -> Runners
 ![runner](https://github.com/user-attachments/assets/f226e9ee-62ae-4227-9acb-b96de5e8308b)
 
 
-Let’s start runner,
+Let’s start runner.
 
 ```
 ./run.sh
@@ -510,11 +510,13 @@ jobs:
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 ```
 
-![1 4](https://github.com/user-attachments/assets/dc7e0394-fec5-4e0b-b70f-6f531f788587)
+![4 2](https://github.com/user-attachments/assets/a0c5eb2f-f852-49d5-b6c0-33b835edaaa1)
 
-**NOTE: When you compare the workflow provided by SonarQube, we change runs-on property from 'self-hosted' to 'ubuntu-latest'. The reason is; 
 
-###########################################################################################################
+**NOTE: When you compare the workflow provided by SonarQube, we change runs-on property from 'self-hosted' to 'ubuntu-latest'. The reason is;**
+
+
+**################################################################################################################**
 
 
 GitHub Actions runners can be categorized into two main types: GitHub-hosted runners and self-hosted runners. The YAML configuration for workflows in your repository will generally look similar regardless of the runner type, but there are key differences in how you specify the runners.
@@ -546,12 +548,12 @@ Here's a table summarizing the key differences between GitHub-hosted runners and
 | **Cost**           | Limited free usage with GitHub's pricing plans; additional usage may incur costs | No additional cost from GitHub, but you bear the cost of maintaining your own infrastructure |
 
 
-###########################################################################################################
+**#################################################################################################################**
 
 
 Now the workflow is created.
 
-Start again GitHub actions runner from the EC2 instance.
+Start again GitHub actions runner from the EC2 instance. (Inorder to continue the workflow in Github, You shoud start the runner in your ssh-ed EC2 terminal as we are using self-hosted mechanism to run the workflow in Github that uses the EC2 instance resources which we created instead of Github resources.)
 
 ```
 cd actions-runner
@@ -701,7 +703,7 @@ Now, return back to the workflow (```runner.yml```) in Github and add the follow
           DOCKER_CLI_ACI: 1
 ```
 
-If you run this job now you will get below output in Github Actions,
+If you run this step inside build job, now you will get below output in Github Actions,
 
 ![image](https://github.com/user-attachments/assets/f855fceb-ce3d-4bcd-adfb-5059746d423f)
 
@@ -812,8 +814,13 @@ Output from the EC2 terminal about deployemnt, services, replica sets and pods i
 
 ![get all](https://github.com/user-attachments/assets/9dbdd804-a043-47b8-ad0c-9f810daf2b13)
 
+Further, it will create a Load Balancer on our AWS account when we apply ```deployment-service.yml```, as we have defined Kubernetes service using Load Balancer.
 
-### Step 5: SLACK
+![lb](https://github.com/user-attachments/assets/86893599-5f69-4be7-a8b5-486e11c87170)
+
+
+
+### Step 5: SLACK Notifications
 
 
 Go to your Slack channel, if you don’t have [create one](https://slack.com/get-started#/createnew).
@@ -893,8 +900,7 @@ Above step sends a Slack notification. It uses the act10ns/slack action and is c
 
 
 
-====================================================================================================
-
+**========================================================================================================**
 
 
 #### Complete Workflow(runner.yml)
@@ -958,5 +964,163 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 ```
 
-Run this workflow now
+### Step 6: Output From running the complete workflow,
+
+Summary of Build and deploy jobs pipeline,
+
+![summary](https://github.com/user-attachments/assets/6460362b-f7c4-4fef-a28a-65337bb18748)
+
+Build job workflow,
+
+![build](https://github.com/user-attachments/assets/20d2220d-2a40-458d-98b7-476cf024fca3)
+
+Image scan report,
+
+![scan](https://github.com/user-attachments/assets/854d18dc-a8a7-4321-a715-524510d1ff76)
+
+Deploy job workflow,
+
+![deploy](https://github.com/user-attachments/assets/f8e9b55f-18f6-42be-8ce3-407ab548f025)
+
+![4 1](https://github.com/user-attachments/assets/ecf4cb1e-9894-4e98-a0b5-f2e76f4fa23b)
+
+```./run.sh``` output in the ssh-ed EC2 terminal.
+
+![success](https://github.com/user-attachments/assets/13f5d167-bd4d-4f14-89b0-20c8992f0696)
+
+To view Kubernetes cluster created provide following command on EC2 terminal,
+
+```
+kubectl get all
+```
+
+![get all](https://github.com/user-attachments/assets/22973d29-106d-4aa9-820a-8e8a4bd667eb)
+
+
+Now all jobs are completed and the workflow is built without any errors!!
+
+To view the application on the browser, open the port in the security group for the Node group instance which is created when we created the EKS cluster using terraform. (It is the port where the Load Balancer service will introduce to allow external traffic to the cluster. In our case it is 31849)
+
+![node](https://github.com/user-attachments/assets/e4c100f2-f6a2-4831-8d8f-c6a1534f6b8a)
+
+![sg port](https://github.com/user-attachments/assets/c88152ac-71d7-4fca-a36e-b9b523ec8fb9)
+
+Load Balancer created,
+
+![lbs](https://github.com/user-attachments/assets/69ad1d4e-f7a8-44b2-9ec2-a59bce4016ff)
+
+
+After that copy the external IP and paste it into the browser.
+
+![url lb](https://github.com/user-attachments/assets/28952c73-8028-4459-9c72-de345b7f5e6d)
+
+```
+<external_ip/<port>
+```
+
+Output,
+
+![image](https://github.com/user-attachments/assets/0ac6e479-59c6-474e-b334-489025d9bc72)
+
+
+
+### Step 7: Delete the Workflow and AWS, EKS Cluster resources
+
+
+After the jobs are completed and successful deployment, we can delete the Kubernetes Cluster resources by running the below code in the workflow(```runner.yml```). It will delete the container and delete the Kubernetes deployment.
+
+
+##### Destruction workflow
+
+```
+name: Build,Analyze,scan
+
+on:
+  push:
+    branches:
+      - main
+
+
+jobs:
+  build-analyze-scan:
+    name: Build
+    runs-on: [self-hosted]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis 
+
+      - name: Deploy to container
+        run: | 
+          docker stop game
+          docker rm game
+
+      - name: Update kubeconfig
+        run: aws eks --region ap-south-1 update-kubeconfig --name EKS_CLOUD
+
+      - name: Deploy to kubernetes
+        run: kubectl delete -f deployment-service.yml
+
+      - name: Send a Slack Notification
+        if: always()
+        uses: act10ns/slack@v1
+        with:
+          status: ${{ job.status }}
+          steps: ${{ toJson(steps) }}
+          channel: '#githubactions-eks'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+```
+
+
+Slack Notification or runnign the destructive workflow
+
+![image](https://github.com/user-attachments/assets/27a46755-6dc2-4667-9663-10707c5bf414)
+
+No Laod Balancer available now.
+
+![lbss](https://github.com/user-attachments/assets/0aeb14c4-19e9-4e38-a895-4117191f664f)
+
+Running the destructive workflow in Github Actions,
+
+![delete](https://github.com/user-attachments/assets/033311f8-4523-4cc3-82b6-3dcbba0d6d8c)
+
+
+Stop and remove the self-hosted runner.
+
+![7 1](https://github.com/user-attachments/assets/90aa5764-0d49-483c-ad69-a3004dfb41a9)
+
+![7 2](https://github.com/user-attachments/assets/e34a0194-aad0-4226-9e58-66f45279d293)
+
+Copy the above command and paste in the EC2 ssh-ed terminal.
+
+![7 3](https://github.com/user-attachments/assets/49c6a693-535b-4df5-97d4-bf3794b84123)
+
+
+Now to delete the EKS cluster using Terraform,
+
+Go to,
+
+```
+cd /home/ubuntu/GitHub-Actions-Amazon-EKS-CI-CD-Pipeline/Eks-terraform
+
+terraform destroy --auto-approve
+```
+
+It will take 10 minutes to destroy the EKS cluster.
+
+![terra](https://github.com/user-attachments/assets/f054bf56-ea7d-423e-aed5-65551a422be3)
+
+Meanwhile, delete the Docker hub token (Account settings -> Security)
+
+![delete docker token](https://github.com/user-attachments/assets/65dc6aaf-0829-4e6c-9b64-b5da4d39d93e)
+
+Once cluster destroys, delete The EC2 instance and IAM role.
+
+![terminate inst](https://github.com/user-attachments/assets/a5808d58-5124-4d2c-bb0b-5f80e8016c9f)
+
+Delete the secrets from GitHub also.
+
 
