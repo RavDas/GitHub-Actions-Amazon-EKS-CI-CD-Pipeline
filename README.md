@@ -781,7 +781,7 @@ Now the application has been dployed to the container. We can access the applica
 ![image](https://github.com/user-attachments/assets/b7a5fa4d-f99a-45d2-a2e1-8f75fefdb38b)
 
 
-### STEP 4: Deploy to EKS
+### Step 4: Deploy to EKS
 
 
 To provide;
@@ -964,7 +964,7 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 ```
 
-### Step 6: Output From running the complete workflow,
+### Step 6: Output from running the complete workflow
 
 Summary of Build and deploy jobs pipeline,
 
@@ -1024,7 +1024,7 @@ Output,
 
 
 
-### Step 7: Delete the Workflow and AWS, EKS Cluster resources
+### Step 7: Edit the workflow to delete AWS and EKS Cluster resources
 
 
 After the jobs are completed and successful deployment, we can delete the Kubernetes Cluster resources by running the below code in the workflow(```runner.yml```). It will delete the container and delete the Kubernetes deployment.
@@ -1075,7 +1075,7 @@ jobs:
 ```
 
 
-Slack Notification or runnign the destructive workflow
+Slack Notification or runnign the destruction workflow.
 
 ![image](https://github.com/user-attachments/assets/27a46755-6dc2-4667-9663-10707c5bf414)
 
@@ -1083,7 +1083,7 @@ No Laod Balancer available now.
 
 ![lbss](https://github.com/user-attachments/assets/0aeb14c4-19e9-4e38-a895-4117191f664f)
 
-Running the destructive workflow in Github Actions,
+Running the destruction workflow in Github Actions,
 
 ![delete](https://github.com/user-attachments/assets/033311f8-4523-4cc3-82b6-3dcbba0d6d8c)
 
