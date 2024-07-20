@@ -1,4 +1,4 @@
-l# GitHub Actions with Amazon-EKS CICD Pipeline
+# GitHub Actions with Amazon-EKS CICD Pipeline
 
 ![image](https://github.com/user-attachments/assets/6135c7ae-e07b-4f94-9228-db75cf82c7c4)
 
